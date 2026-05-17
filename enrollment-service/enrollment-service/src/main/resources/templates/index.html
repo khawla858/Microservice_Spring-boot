@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+    <h2>My Enrollments</h2>
+<input id="studentId" placeholder="Student ID"/>
+<button onclick="load()">Load</button>
+
+<ul id="list"></ul>
+
+<script>
+async function load(){
+  const id = document.getElementById("studentId").value;
+  const res = await fetch("http://localhost:8080/enrollments/student/" + id);
+  const data = await res.json();
+
+  const ul = document.getElementById("list");
+  ul.innerHTML = "";
+
+  data.forEach(e => {
+    const li = document.createElement("li");
+    li.innerText = e.courseName + " | deletable: " + e.deletable;
+    ul.appendChild(li);
+  });
+}
+</script>
+</body>
+</html>
