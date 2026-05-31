@@ -35,6 +35,11 @@ public class EnrollmentService {
 
         StudentDTO s = studentClient.getStudent(studentId);
         CourseDTO c = courseClient.getCourse(courseId);
+        
+     // 3. ✅ AJOUTER ICI : Vérifier que l'étudiant n'est pas déjà inscrit à ce cours
+        if (repo.existsByStudentIdAndCourseId(studentId, courseId)) {
+            throw new RuntimeException("You are already enrolled in this course");
+        }
 
         if (repo.countByCourseId(courseId) >= 3)
             throw new RuntimeException("Course full");
@@ -64,6 +69,15 @@ public class EnrollmentService {
     private EnrollmentResponseDTO buildDTO(Enrollment e,
                                            StudentDTO s,
                                            CourseDTO c) {
+    	
+    	 // DEBUG - Afficher les valeurs reçues
+        System.out.println("========== DEBUG ==========");
+        System.out.println("Enrollment ID: " + e.getId());
+        System.out.println("Student CNIE: " + (s != null ? s.getCnie() : "NULL"));
+        System.out.println("Course object: " + (c != null ? c.toString() : "NULL"));
+        System.out.println("Course ID: " + (c != null ? c.getId() : "NULL"));
+        System.out.println("Course Title from DTO: " + (c != null ? c.getTitle() : "NULL"));
+        System.out.println("===========================");
 
         EnrollmentResponseDTO dto = new EnrollmentResponseDTO();
         dto.setEnrollmentId(e.getId());
@@ -78,4 +92,23 @@ public class EnrollmentService {
 
         return dto;
     }
+    
+    public void deleteEnrollment(Long enrollmentId) {
+        Enrollment enrollment = repo.findById(enrollmentId)
+            .orElseThrow(() -> new RuntimeException("Enrollment not found"));
+        
+        // Vérifier la règle des 24h avant suppression
+        boolean deletable = Duration.between(enrollment.getEnrollmentDate(), LocalDateTime.now()).toHours() < 24;
+        
+        if (!deletable) {
+            throw new RuntimeException("Cannot delete enrollment older than 24 hours");
+        }
+        
+        repo.deleteById(enrollmentId);
+    }
+    /////////////////////////////////////////////////////////////////////////////////////////
+    public int getEnrollmentCount(Long courseId) {
+        return (int) repo.countByCourseId(courseId);
+    }
+    
 }

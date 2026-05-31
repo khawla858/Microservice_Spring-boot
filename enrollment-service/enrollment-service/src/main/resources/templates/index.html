@@ -2,30 +2,88 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>Student Enrollment System</title>
+<style>
+    .deletable { color: green; }
+    .non-deletable { color: gray; }
+    .course-item { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+</style>
 </head>
 <body>
     <h2>My Enrollments</h2>
-<input id="studentId" placeholder="Student ID"/>
-<button onclick="load()">Load</button>
+    
+    <!-- Changement : utiliser CNIE au lieu de Student ID -->
+    <input id="cnie" placeholder="CNIE (ex: CD2387)"/>
+    <button onclick="load()">Load My Courses</button>
 
-<ul id="list"></ul>
+    <ul id="list"></ul>
 
-<script>
-async function load(){
-  const id = document.getElementById("studentId").value;
-  const res = await fetch("http://localhost:8080/enrollments/student/" + id);
-  const data = await res.json();
+    <div id="error" style="color: red;"></div>
 
-  const ul = document.getElementById("list");
-  ul.innerHTML = "";
+    <script>
+    async function load() {
+        const cnie = document.getElementById("cnie").value;
+        if (!cnie) {
+            alert("Please enter your CNIE");
+            return;
+        }
 
-  data.forEach(e => {
-    const li = document.createElement("li");
-    li.innerText = e.courseName + " | deletable: " + e.deletable;
-    ul.appendChild(li);
-  });
-}
-</script>
+        try {
+            // 1. Chercher l'étudiant par son CNIE
+            const studentRes = await fetch("http://localhost:8080/students/by-cnie/" + cnie);
+            if (!studentRes.ok) throw new Error("Student not found with CNIE: " + cnie);
+            const student = await studentRes.json();
+
+            // 2. Récupérer ses inscriptions
+            const res = await fetch("http://localhost:8080/enrollments/student/" + student.id);
+            if (!res.ok) throw new Error("Failed to load enrollments");
+            const data = await res.json();
+
+            // 3. Afficher la liste avec bouton delete conditionnel
+            const ul = document.getElementById("list");
+            ul.innerHTML = "";
+
+            if (data.length === 0) {
+                ul.innerHTML = "<li>No enrollments found</li>";
+            }
+
+            data.forEach(e => {
+                const li = document.createElement("li");
+                li.className = "course-item";
+                li.innerHTML = `
+                    <strong>${e.courseName}</strong><br/>
+                    Enrollment Date: ${new Date(e.date).toLocaleString()}<br/>
+                    ${e.deletable ? 
+                        `<button class="deletable" onclick="deleteEnrollment(${e.enrollmentId})">Delete (within 24h)</button>` : 
+                        `<span class="non-deletable">❌ Cannot delete (past 24 hours)</span>`
+                    }
+                `;
+                ul.appendChild(li);
+            });
+        } catch (error) {
+            document.getElementById("error").innerText = error.message;
+        }
+    }
+
+    async function deleteEnrollment(enrollmentId) {
+        if (!confirm("Cancel this enrollment?")) return;
+        
+        try {
+            const res = await fetch("http://localhost:8080/enrollments/" + enrollmentId, {
+                method: 'DELETE'
+            });
+            
+            if (res.ok) {
+                alert("Enrollment cancelled successfully");
+                load(); // Recharger la liste
+            } else {
+                const error = await res.text();
+                alert("Error: " + error);
+            }
+        } catch (error) {
+            alert("Network error: " + error.message);
+        }
+    }
+    </script>
 </body>
 </html>

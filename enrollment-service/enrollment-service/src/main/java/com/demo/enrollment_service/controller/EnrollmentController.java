@@ -2,6 +2,7 @@ package com.demo.enrollment_service.controller;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,4 +36,14 @@ public class EnrollmentController {
   public String test(){
     return "ok";
   }
+  ////////////////////////////////////////////////////////////////////////
+  @GetMapping("/course/{courseId}/count")
+  public int getEnrollmentCount(@PathVariable Long courseId) {
+      return service.getEnrollmentCount(courseId);
+  }
+  @DeleteMapping("/{id}")
+  public void delete(@PathVariable Long id){
+    service.deleteEnrollment(id);
+  }
+  
 }
