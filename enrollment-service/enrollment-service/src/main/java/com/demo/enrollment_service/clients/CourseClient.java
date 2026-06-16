@@ -15,7 +15,7 @@ public class CourseClient {
 
     public CourseDTO getCourse(Long id) {
         return webClient.get()
-                .uri("http://localhost:8082/courses/" + id)
+                .uri("http://course-service/courses/" + id)  // ← Utilise le nom du service
                 .retrieve()
                 .bodyToMono(CourseDTO.class)
                 .block();

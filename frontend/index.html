@@ -777,16 +777,25 @@ async function enrollInCourse(courseId) {
 
         if (res.ok) {
             alert(`✅ Successfully enrolled in course!`);
-            loadDashboard(); // Refresh
+            loadDashboard();
         } else {
-            const error = await res.text();
-            // Afficher un message plus clair selon l'erreur
-            if (error.includes("already enrolled")) {
+            // Essayer de parser le JSON d'erreur
+            let errorMessage = "";
+            try {
+                const errorJson = await res.json();
+                errorMessage = errorJson.message || errorJson.error || JSON.stringify(errorJson);
+            } catch(e) {
+                errorMessage = await res.text();
+            }
+            
+            console.log("Message d'erreur:", errorMessage);
+            
+            if (errorMessage.includes("already enrolled")) {
                 alert("❌ You are already enrolled in this course!");
-            } else if (error.includes("Course full")) {
+            } else if (errorMessage.includes("Course full")) {
                 alert("❌ Course is full (max 3 students)!");
             } else {
-                alert("❌ Enrollment failed: " + error);
+                alert("❌ Enrollment failed: " + errorMessage);
             }
         }
     } catch (error) {
