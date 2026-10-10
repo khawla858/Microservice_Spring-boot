@@ -1,0 +1,32 @@
+# ═══ Security ═══
+.env
+*.env
+application-local.properties
+**/application-local.properties
+*.secret
+*.key
+
+# ═══ Maven ═══
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# ═══ IDE ═══
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+
+# ═══ Logs ═══
+*.log
+logs/
+
+# ═══ OS ═══
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ═══ Node ═══
+node_modules/
